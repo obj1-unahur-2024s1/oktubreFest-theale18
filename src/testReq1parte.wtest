@@ -1,0 +1,46 @@
+import personas.*
+import marcasYjarras.*
+import carpas.*
+
+describe "Test de requerimientos - primera parte" {
+	
+	const brahma = new Rubia (lupulo = 0.03, origen = "Brasilera", graduacion = 0.08, precioPorLitro = 500)
+	const brahma2 = new Rubia (lupulo = 0.09, origen = "Brasilera", graduacion = 0.10, precioPorLitro = 500)
+	const schneider = new Negra (lupulo = 0.08, origen = "Argentina", precioPorLitro = 370)
+	const hofbrau = new Roja (lupulo = 0.08, origen = "Alemana", precioPorLitro = 400)
+	
+	const carpa1 = new Carpa (capacidadDeCarpa = 40, tieneBanda = true, marcaCerveza = brahma, recargo = recargoFijo)
+	const carpa2 = new Carpa (capacidadDeCarpa = 40, tieneBanda = false, marcaCerveza = schneider, recargo = recargoPorCantidad)
+	const carpa3 = new Carpa (capacidadDeCarpa = 40, tieneBanda = true, marcaCerveza = brahma2, recargo = recargoPorEbriedad)
+	
+	const jarraBrahma = new Jarra (capacidadJarra = 0.3, marca = brahma, carpa = carpa1) 
+	const jarraSchneider = new Jarra (capacidadJarra = 1, marca = schneider, carpa = carpa2)
+	const jarraHofbrau =  new Jarra (capacidadJarra = 1.2, marca = hofbrau, carpa = carpa3) 
+	
+	const personaAlemana = new Aleman (peso = 80, musicaTradicional = true, aguante = 8, nacionalidad = "Alemania")
+	const personaBelga = new Belga (peso = 80, musicaTradicional = false, aguante = 8, nacionalidad = "Belga")
+	
+	test "Contenido de alcohol en cada tipo de cerveza"{
+		
+		assert.equals(0.024, jarraBrahma.contenidoAlcohol())
+		assert.equals(0.04, jarraSchneider.contenidoAlcohol())
+		assert.equals(0.06, jarraHofbrau.contenidoAlcohol())
+	}
+	
+	test "Total de alcohol que ingirió una persona y si esta está ebria"{
+		
+		personaAlemana.comprarCerveza(jarraBrahma)
+		personaAlemana.comprarCerveza(jarraSchneider)
+		personaAlemana.comprarCerveza(jarraHofbrau)
+		
+		assert.equals(0.124, personaAlemana.totalAlcohol())
+		assert.that(personaAlemana.estaEbria())
+	}
+	
+	test "Al belga le gusta la Schneider y la Hofbrau, mas no la Brahma"{
+		
+		assert.that(personaBelga.leGusta(schneider))
+		assert.that(personaBelga.leGusta(hofbrau))
+		assert.notThat(personaBelga.leGusta(brahma))
+	}
+}
