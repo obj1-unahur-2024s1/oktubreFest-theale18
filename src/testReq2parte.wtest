@@ -1,0 +1,317 @@
+import personas.*
+import marcasYjarras.*
+import carpas.*
+
+describe "Test de requerimientos - segunda parte / avanzados" {
+	
+	const brahma = new Rubia (lupulo = 0.03, origen = "Brasilera", graduacion = 0.08, precioPorLitro = 500)
+	const brahma2 = new Rubia (lupulo = 0.09, origen = "Brasilera", graduacion = 0.10, precioPorLitro = 500)
+	const schneider = new Negra (lupulo = 0.08, origen = "Argentina", precioPorLitro = 370)
+	const schneider2 = new Negra (lupulo = 0.08, origen = "Argentina", precioPorLitro = 380)
+	const schneider3 = new Negra (lupulo = 0.08, origen = "Argentina", precioPorLitro = 390)
+	const hofbrau = new Roja (lupulo = 0.08, origen = "Alemana", precioPorLitro = 400)
+	
+	const carpa1 = new Carpa (capacidadDeCarpa = 40, tieneBanda = true, marcaCerveza = brahma, recargo = recargoFijo)
+	const carpa2 = new Carpa (capacidadDeCarpa = 40, tieneBanda = false, marcaCerveza = schneider, recargo = recargoPorCantidad)
+	const carpa3 = new Carpa (capacidadDeCarpa = 40, tieneBanda = true, marcaCerveza = brahma2, recargo = recargoPorEbriedad)
+	
+	const carpa4 = new Carpa (capacidadDeCarpa = 4, tieneBanda = true, marcaCerveza = schneider, recargo = recargoPorCantidad)
+	const carpa5 = new Carpa (capacidadDeCarpa = 7, tieneBanda = true, marcaCerveza = schneider, recargo = recargoPorCantidad)
+	const carpa6 = new Carpa (capacidadDeCarpa = 7, tieneBanda = true, marcaCerveza = schneider, recargo = recargoPorEbriedad)
+	
+	const jarraBrahma = new Jarra (capacidadJarra = 0.3, marca = brahma, carpa = carpa1) 
+	const jarraBrahma2 = new Jarra (capacidadJarra = 0.3, marca = brahma2, carpa = carpa1) 
+	const jarraSchneider = new Jarra (capacidadJarra = 0.7, marca = schneider, carpa = carpa4)
+	const jarraSchneider2 = new Jarra (capacidadJarra = 0.7, marca = schneider2, carpa = carpa5)
+	const jarraSchneider3 = new Jarra (capacidadJarra = 0.7, marca = schneider3, carpa = carpa6)
+	const jarraHofbrau =  new Jarra (capacidadJarra = 1.2, marca = hofbrau, carpa = carpa3) 
+	
+	const personaAlemana = new Aleman (peso = 80, musicaTradicional = true, aguante = 2, nacionalidad = "Alemana")
+	const personaAlemana2 = new Aleman (peso = 75, musicaTradicional = true, aguante = 2, nacionalidad = "Alemana")
+	const personaAlemana3 = new Aleman (peso = 75, musicaTradicional = true, aguante = 2, nacionalidad = "Alemana")
+	const personaBelga = new Belga (peso = 80, musicaTradicional = false, aguante = 8, nacionalidad = "Belga")
+	const personaCheca = new Checo (peso = 80, musicaTradicional = true, aguante = 2, nacionalidad = "Checa")
+	
+	test "Alemán quiere entrar a una carpa" {
+		
+		assert.that(personaAlemana.quiereEntrar(carpa1))
+		assert.that(carpa1.carpaEsPar())
+	}
+	
+	test "Belga quiere entrar a una carpa" {
+		
+		assert.that(personaBelga.quiereEntrar(carpa2))
+	}
+	
+	test "Checo quiere entrar a una carpa" {
+		
+		assert.that(personaCheca.quiereEntrar(carpa3))
+	}
+	
+	test "Persona puede entrar a la carpa" {
+		
+		assert.that(carpa1.dejaIngresar(personaCheca))
+	}
+	
+	test "Persona no puede entrar a la carpa (está ebria)" {
+		
+		personaCheca.comprarCerveza(jarraBrahma2)
+		personaCheca.comprarCerveza(jarraBrahma2)
+		personaCheca.comprarCerveza(jarraBrahma2)
+		personaCheca.comprarCerveza(jarraBrahma2)
+		
+		assert.notThat(carpa1.dejaIngresar(personaCheca))
+	}
+	
+	test "Persona no puede entrar a la carpa (hay número impar de personas)" {
+		
+		carpa1.ingresar(personaAlemana)
+		
+		assert.that(carpa1.dejaIngresar(personaAlemana))
+		assert.notThat(carpa1.carpaEsPar())
+	}
+	
+	test "Persona puede entrar en la carpa" {
+		
+		assert.that(carpa1.carpaEsPar())
+		
+		personaAlemana.ingresar(carpa1)
+		
+		assert.equals([personaAlemana], carpa1.personasDentro())
+	}
+	
+	test "Persona no puede entrar en la carpa" {
+		
+		assert.throwsExceptionWithMessage("La persona no puede entrar en la carpa", {personaCheca.ingresar(carpa1)})
+	}
+	
+	test "La carpa les sirve cerveza" {
+		
+		assert.that(carpa1.carpaEsPar())
+		
+		personaAlemana.ingresar(carpa1)
+		personaBelga.ingresar(carpa2)
+		
+		carpa1.servirCerveza(personaAlemana, 5)
+		carpa2.servirCerveza(personaBelga, 2)
+		
+		assert.equals(1, personaAlemana.jarrasCompradas().size())
+		assert.equals(1, personaBelga.jarrasCompradas().size())
+	}
+	
+	test "La persona no puede ser atendida" {
+		
+		assert.throwsExceptionWithMessage("La persona no está en la carpa", {carpa1.servirCerveza(personaAlemana, 5)})
+	}
+	
+	test "Contar a los ebrios empedernidos" {
+		
+		assert.that(carpa1.carpaEsPar())
+		
+		personaAlemana.ingresar(carpa3)
+		personaBelga.ingresar(carpa2)
+		personaCheca.ingresar(carpa3)
+		
+		carpa3.servirCerveza(personaAlemana, 5)
+		carpa2.servirCerveza(personaBelga, 0.5)
+		carpa3.servirCerveza(personaCheca, 4)
+		
+		assert.equals(2, carpa3.ebriosEmpedernidos())
+		assert.equals(0, carpa2.ebriosEmpedernidos())
+	}
+	
+	test "¿El alemán es patriota?" {
+		
+		personaAlemana.comprarCerveza(jarraHofbrau)
+		personaAlemana.comprarCerveza(jarraHofbrau)
+		personaAlemana.comprarCerveza(jarraHofbrau)
+		
+		assert.that(personaAlemana.esPatriota())
+		
+	}
+	
+	test "El alemán no es patriota..." {
+		
+		personaAlemana.comprarCerveza(jarraBrahma)
+		personaAlemana.comprarCerveza(jarraHofbrau)
+		personaAlemana.comprarCerveza(jarraSchneider)
+		
+		assert.notThat(personaAlemana.esPatriota())
+	}
+	
+	test "¿El alemán y el belga son compatibles?" {
+		
+		personaAlemana.comprarCerveza(jarraHofbrau)
+		personaAlemana.comprarCerveza(jarraBrahma)
+		
+		personaBelga.comprarCerveza(jarraHofbrau)
+		personaBelga.comprarCerveza(jarraBrahma)
+		personaBelga.comprarCerveza(jarraSchneider)
+		
+		assert.that(personaAlemana.esCompatibleCon(personaBelga))
+	}
+	 
+	test "El alemán y el belga no son compatibles..." {
+		
+		personaAlemana.comprarCerveza(jarraHofbrau)
+		personaAlemana.comprarCerveza(jarraBrahma)
+		
+		personaBelga.comprarCerveza(jarraSchneider)
+		
+		assert.notThat(personaAlemana.esCompatibleCon(personaBelga))
+	}
+	
+	test "La carpa es homogénea" {
+		
+		carpa1.ingresar(personaAlemana)
+		carpa1.ingresar(personaAlemana2)
+		
+		assert.that(carpa1.esHomogenea())
+	}
+	
+	test "La carpa no es homogénea" {
+		
+		carpa1.ingresar(personaAlemana)
+		carpa1.ingresar(personaBelga)
+		
+		assert.notThat(carpa1.esHomogenea())
+	}
+	
+	test "Carpa en la que se tomó" {
+		
+		carpa1.ingresar(personaAlemana)
+		carpa1.servirCerveza(personaAlemana, 2)
+		
+		carpa3.ingresar(personaAlemana)
+		carpa3.servirCerveza(personaAlemana, 1)
+		
+		assert.equals(#{carpa1, carpa3}, personaAlemana.carpasDondeSeTomo())
+	}
+	
+	test "Carpa donde a la persona no le sirvieron" {
+		
+		carpa1.ingresar(personaAlemana)
+		
+		assert.equals([personaAlemana], carpa1.clientesSinServir())
+	}
+	
+	test "No hay cervezas para el vicio" {
+		
+		carpa1.ingresar(personaAlemana)
+		
+		assert.notThat(personaAlemana.estaEnVicio())
+	}
+	
+	test "El alemán está en vicio" {
+		
+		carpa1.ingresar(personaAlemana)
+		carpa1.servirCerveza(personaAlemana, 3)
+		carpa1.servirCerveza(personaAlemana, 4)
+		carpa1.servirCerveza(personaAlemana, 5)
+		
+		assert.that(personaAlemana.estaEnVicio())
+	}
+	
+	test "El alemán no está en vicio" {
+		
+		carpa1.ingresar(personaAlemana)
+		carpa1.servirCerveza(personaAlemana, 3)
+		carpa1.servirCerveza(personaAlemana, 7)
+		carpa1.servirCerveza(personaAlemana, 5)
+		
+		assert.notThat(personaAlemana.estaEnVicio())
+	}
+	
+	test "Precio de la venta por recargo fijo" {
+		
+		assert.equals(195, jarraBrahma.precioDeLaVenta())
+	} 
+	
+	test "Precio de la venta por recargo del 40% por cantidad" {
+		
+		carpa4.ingresar(personaAlemana)
+		carpa4.ingresar(personaCheca)
+		
+		assert.equals(1.40, carpa4.recargo().recargo(carpa4))
+		assert.equals(362.6, jarraSchneider.precioDeLaVenta())
+	}
+	
+	test "Precio de la venta por recargo del 25% por cantidad" {
+		
+		carpa5.ingresar(personaAlemana)
+		carpa5.ingresar(personaCheca)
+		
+		assert.equals(1.25, carpa5.recargo().recargo(carpa5))
+		assert.equals(332.5, jarraSchneider2.precioDeLaVenta())
+	}
+	
+	test "Precio de la venta por recargo del 50% por ebriedad" {
+		
+		carpa6.ingresar(personaAlemana)
+		
+		personaAlemana.comprarCerveza(jarraSchneider)
+		personaAlemana.comprarCerveza(jarraSchneider)
+		personaAlemana.comprarCerveza(jarraSchneider)
+		personaAlemana.comprarCerveza(jarraSchneider)
+		
+		carpa6.ingresar(personaAlemana2)
+		
+		personaAlemana2.comprarCerveza(jarraSchneider)
+		personaAlemana2.comprarCerveza(jarraSchneider)
+		personaAlemana2.comprarCerveza(jarraSchneider)
+		personaAlemana2.comprarCerveza(jarraSchneider)
+		
+		carpa6.ingresar(personaAlemana3)
+		
+		personaAlemana3.comprarCerveza(jarraSchneider)
+		personaAlemana3.comprarCerveza(jarraSchneider)
+		personaAlemana3.comprarCerveza(jarraSchneider)
+		personaAlemana3.comprarCerveza(jarraSchneider)
+		
+		carpa6.ingresar(personaCheca)
+		
+		assert.equals(1.50, carpa6.recargo().recargo(carpa6))
+		assert.equals(409.5, jarraSchneider3.precioDeLaVenta())
+	}
+	
+	test "Precio de la venta por recargo del 20% por ebriedad" {
+		
+		carpa6.ingresar(personaAlemana)
+		
+		personaAlemana.comprarCerveza(jarraSchneider)
+		personaAlemana.comprarCerveza(jarraSchneider)
+		personaAlemana.comprarCerveza(jarraSchneider)
+		personaAlemana.comprarCerveza(jarraSchneider)
+		
+		carpa6.ingresar(personaAlemana2)
+		carpa6.ingresar(personaAlemana3)		
+		carpa6.ingresar(personaCheca)
+		
+		assert.equals(1.20, carpa6.recargo().recargo(carpa6))
+		assert.equals(327.6, jarraSchneider3.precioDeLaVenta())
+	}
+	
+	test "Jarra más cara de la persona alemana" {
+		
+		carpa6.ingresar(personaAlemana)
+		
+		personaAlemana.comprarCerveza(jarraSchneider)
+		personaAlemana.comprarCerveza(jarraSchneider2)
+		personaAlemana.comprarCerveza(jarraSchneider3)
+		personaAlemana.comprarCerveza(jarraBrahma)
+		
+		assert.equals(jarraSchneider3, personaAlemana.jarraMasCara())
+	}
+	
+	test "Gasto total de persona alemana" {
+		
+		carpa6.ingresar(personaAlemana)
+		
+		personaAlemana.comprarCerveza(jarraSchneider)
+		personaAlemana.comprarCerveza(jarraSchneider2)
+		personaAlemana.comprarCerveza(jarraSchneider3)
+		personaAlemana.comprarCerveza(jarraBrahma)
+		
+		assert.equals(1129.5, personaAlemana.gastoTotalCerveza())
+	}
+}
